@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Customer Segmentation</title>
+
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body>
+
+<div class="container mt-4">
+    <h2 class="text-center mb-4">Customer Segmentation</h2>
+
+    <!-- File Upload -->
+    <div class="input-group mb-3">
+        <input type="file" class="form-control" id="csvFile" accept=".csv">
+        <label class="input-group-text">Upload CSV</label>
+    </div>
+
+    <!-- Button -->
+    <button class="btn btn-primary" onclick="generateSegmentation()">
+        Generate Segmentation
+    </button>
+
+    <br><br>
+
+    <!-- Output -->
+    <div class="row" id="image-container"></div>
+
+    <!-- Error Message -->
+    <div id="error-message" class="text-danger mt-3"></div>
+</div>
+
+<script>
+async function generateSegmentation() {
+
+    const fileInput = document.getElementById('csvFile');
+    const errorMessage = document.getElementById('error-message');
+    const container = document.getElementById('image-container');
+
+    errorMessage.textContent = "";
+    container.innerHTML = "";
+
+    if (!fileInput.files.length) {
+        errorMessage.textContent = "Please select a CSV file first!";
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append('file', fileInput.files[0]);
+
+    try {
+        const response = await fetch('/segment', {
+            method: 'POST',
+            body: formData,
+        });
+
+        if (!response.ok) {
+            const text = await response.text();
+            errorMessage.textContent = text;
+            return;
+        }
+
+        const data = await response.json();
+        console.log("DATA:", data);
+
+        // 🔥 DISPLAY GRAPHS
+        // for (let key in data) {
+
+        //     const div = document.createElement('div');
+        //     div.style.marginBottom = "20px";
+
+        //     const title = document.createElement('h4');
+        //     title.innerText = key;
+        //     div.appendChild(title);
+
+        //     const img = document.createElement('img');
+        //     img.src = "data:image/png;base64," + data[key];
+        //     img.style.width = "400px";
+
+        //     div.appendChild(img);
+        //     container.appendChild(div);
+        // }
+
+
+
+        for (let key in data) {
+
+    const div = document.createElement('div');
+    div.style.marginBottom = "25px";
+
+    // Title
+    const title = document.createElement('h4');
+    title.innerText = key.replace(/_/g, " ").toUpperCase();
+    div.appendChild(title);
+
+    // Image
+    const img = document.createElement('img');
+    img.src = "data:image/png;base64," + data[key];
+    img.style.width = "400px";
+    img.style.display = "block";
+    img.style.marginBottom = "10px";
+    div.appendChild(img);
+
+    // ✅ EASY DESCRIPTION (IMPORTANT)
+    const desc = document.createElement('p');
+    desc.style.background = "#f5f5f5";
+    desc.style.padding = "10px";
+    desc.style.borderRadius = "8px";
+
+    if (key === "segmentation") {
+        desc.innerText = "This graph divides customers into different groups. Each group shows people with similar spending habits. This helps the business target the right customers.";
+    } 
+    else if (key === "age_distribution") {
+        desc.innerText = "This graph shows which age group visits or buys more. Business can focus on the most active age group.";
+    } 
+    else if (key === "gender_pie") {
+       desc.innerText = "This chart shows the distribution of male and female customers. Blue color indicates Male customers and orange color indicates Female customers. Businesses can use this information to create targeted marketing strategies.";
+        //desc.innerText = "This chart shows how many male and female customers are there. This helps in planning offers for each group.";
+    } 
+    else if (key === "spending_vs_age") {
+    //desc.innerText = "This graph shows how customer income is related to their spending. Darker areas mean more customers are present in that range. It shows that people with higher income usually spend more money. This helps shop owners identify which customers are more valuable and plan better offers for them.";   
+     desc.innerText = "This graph shows how spending changes with age. It helps identify which age group spends more money.";
+    } 
+    else if (key === "income_spending_heatmap") {
+      desc.innerText = "This graph shows how customer income is related to their spending. Darker areas mean more customers are present in that range. It shows that people with higher income usually spend more money. This helps shop owners identify which customers are more valuable and plan better offers for them.";
+        // desc.innerText = "This graph shows how income affects spending. Customers with higher income often spend more, which is useful for targeting premium products.";
+    }
+
+    div.appendChild(desc);
+
+    container.appendChild(div);
+}
+    } catch (error) {
+        console.error(error);
+        errorMessage.textContent = "Error generating graph";
+    }
+}
+</script>
+</body>
+</html>
